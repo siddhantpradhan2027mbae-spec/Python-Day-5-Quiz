@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 5 Checkpoint — Python for Data Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+<style>
+:root{
+  --bg:#F6F9FF; --surface:#FFFFFF; --ink:#16202E; --ink-soft:#46536A; --muted:#7A88A0; --line:#DCE4F5;
+  --primary:#2455E6; --primary-ink:#133B9C; --primary-soft:#E4EBFF;
+  --gold:#F4B400; --gold-soft:#FFF3D6; --green:#1B9C63; --green-soft:#E1F6EC;
+  --red:#E4483A; --red-soft:#FDE7E5; --purple:#7B5CF0; --purple-soft:#ECE7FE;
+  --shadow:0 1px 2px rgba(22,32,46,.04),0 8px 24px -12px rgba(22,32,46,.12);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:16px;line-height:1.6;}
+h1,h2,h3,h4,.btn,.tab,.card-title{font-family:'Poppins',sans-serif;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+p{color:var(--ink-soft); max-width:70ch;}
+.view{display:none;}
+.view.active{display:block;}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px 60px;}
+
+/* top bar */
+.topbar{background:linear-gradient(90deg,#2455E6,#7B5CF0);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:10px;font-family:'Poppins',sans-serif;font-weight:600;font-size:.95rem;}
+.topbar .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);}
+
+/* hub */
+.hub-hero{padding:48px 24px 30px;max-width:1040px;margin:0 auto;}
+.hub-hero h1{font-size:2.1rem;font-weight:800;margin:0 0 12px;letter-spacing:-.01em;}
+.hub-hero p{font-size:1.02rem;max-width:64ch;}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1040px;margin:0 auto;padding:0 24px 40px;}
+.hcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px 18px;text-align:center;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s;}
+.hcard:hover{transform:translateY(-3px);border-color:var(--primary);}
+.hicon{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;}
+.card-title{font-size:1.02rem;font-weight:700;margin-bottom:6px;}
+.card-meta{font-size:.78rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.02em;}
+.footer-note{max-width:1040px;margin:20px auto 60px;padding:0 24px;color:var(--muted);font-size:.85rem;text-align:center;}
+.footer-note strong{color:var(--ink-soft);}
+
+/* section shell inside each view */
+.section-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 26px;margin:22px 0;box-shadow:var(--shadow);}
+.backbtn{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);color:var(--ink-soft);font-weight:600;font-size:.85rem;padding:8px 14px;border-radius:8px;cursor:pointer;margin:20px 24px 0;}
+.backbtn:hover{background:var(--primary-soft);color:var(--primary-ink);}
+.view-hero{padding:6px 24px 0;max-width:1040px;margin:0 auto;}
+.view-hero h2{font-size:1.7rem;margin:14px 0 6px;}
+
+/* tabs (reused for interview + snippets) */
+.tabbar{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);margin-bottom:16px;}
+.tab{font-size:.85rem;font-weight:600;color:var(--muted);background:transparent;border:none;padding:9px 14px;cursor:pointer;border-radius:8px 8px 0 0;}
+.tab.active{color:var(--primary-ink);background:var(--primary-soft);}
+.tabpanel{display:none;} .tabpanel.active{display:block;}
+
+/* accordion */
+.acc-item{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.acc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;background:var(--bg);font-weight:600;font-size:.94rem;}
+.acc-head .tag{font-size:.68rem;font-family:'JetBrains Mono',monospace;background:var(--purple-soft);color:var(--purple);padding:3px 8px;border-radius:6px;font-weight:600;flex:none;}
+.acc-plus{flex:none;font-size:1.2rem;color:var(--primary);transition:transform .2s;}
+.acc-item.open .acc-plus{transform:rotate(45deg);}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .25s ease;padding:0 16px;}
+.acc-item.open .acc-body{padding:2px 16px 16px;}
+.acc-body p{margin:6px 0;font-size:.93rem;}
+.acc-body ul{margin:6px 0;padding-left:20px;font-size:.93rem;color:var(--ink-soft);}
+
+/* flip cards */
+.flip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.flip-card{perspective:1200px;height:200px;cursor:pointer;}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;}
+.flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:16px;overflow-y:auto;}
+.flip-front{background:var(--primary-soft);border:1px solid #C7D6FF;display:flex;flex-direction:column;justify-content:space-between;}
+.flip-front .q{font-weight:600;font-size:.92rem;color:var(--ink);}
+.flip-front .hint{font-size:.72rem;color:var(--primary-ink);font-weight:600;}
+.flip-back{background:#0F1720;color:#DCE4FF;transform:rotateY(180deg);font-size:.83rem;line-height:1.55;}
+.flip-back strong{color:#F4B400;}
+
+/* code cards */
+.codecard{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:12px 0;background:#FBFCFE;}
+.filebar{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;background:var(--ink);color:#CBD5E1;font-size:.74rem;}
+.copybtn{background:rgba(255,255,255,.08);color:#CBD5E1;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:3px 9px;font-size:.7rem;cursor:pointer;}
+.codecard pre{margin:0;padding:14px 16px;overflow-x:auto;font-size:.83rem;line-height:1.5;}
+
+/* callouts */
+.callout{border-radius:10px;padding:14px 16px;margin:16px 0;font-size:.9rem;}
+.callout.info{background:var(--primary-soft);border:1px solid #C7D6FF;color:var(--primary-ink);}
+.callout.warn{background:var(--gold-soft);border:1px solid #F3DFA0;color:#8A6100;}
+.callout.locked{background:var(--red-soft);border:1px solid #F4C3BE;color:#A5321F;}
+
+/* quiz */
+.quiz-form input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'Inter',sans-serif;font-size:.92rem;margin-bottom:12px;}
+.btn{background:var(--primary);color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:600;font-size:.92rem;cursor:pointer;}
+.btn:hover{background:var(--primary-ink);}
+.btn.ghost{background:var(--bg);color:var(--ink-soft);border:1px solid var(--line);}
+.qblock{border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+.qblock .qtitle{font-weight:600;margin-bottom:10px;font-size:.95rem;}
+.opt-label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.9rem;}
+.opt-label:hover{background:var(--bg);}
+.opt-label input{margin-top:3px;}
+.score-hero{text-align:center;padding:24px 0;}
+.score-num{font-size:3rem;font-weight:800;font-family:'Poppins',sans-serif;color:var(--primary);}
+.review-item{border-left:4px solid var(--line);padding:10px 14px;margin-bottom:10px;border-radius:6px;background:var(--bg);}
+.review-item.correct{border-color:var(--green);}
+.review-item.wrong{border-color:var(--red);}
+.review-item .yours{font-size:.85rem;margin:4px 0;}
+.review-item .why{font-size:.85rem;color:var(--ink-soft);margin-top:4px;}
+
+@media(max-width:820px){.card-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.card-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="topbar"><span class="dot"></span> Python for Data Engineering · Module 5 Checkpoint</div>
+
+<!-- ================= HUB ================= -->
+<div class="view active" id="view-hub">
+  <div class="hub-hero">
+    <h1>Show what you actually learned.</h1>
+    <p>Six ways to prove it: a graded quiz, real interview questions with enterprise context, an assignment you submit through VS Code, a heavier code reference with less theory, a homework project, and a set of lab challenges. Pick one below.</p>
+  </div>
+  <div class="card-grid">
+    <div class="hcard" onclick="showView('view-quiz')">
+      <div class="hicon" style="background:var(--red-soft);">📝</div>
+      <div class="card-title">Daily Quiz</div>
+      <div class="card-meta">10 QUESTIONS · GRADED</div>
+    </div>
+    <div class="hcard" onclick="showView('view-interview')">
+      <div class="hicon" style="background:var(--primary-soft);">💼</div>
+      <div class="card-title">Interview Prep</div>
+      <div class="card-meta">15 QUESTIONS · ENTERPRISE</div>
+    </div>
+    <div class="hcard" onclick="showView('view-assignment')">
+      <div class="hicon" style="background:var(--gold-soft);">🧾</div>
+      <div class="card-title">Assignment</div>
+      <div class="card-meta">8 QUESTIONS · VS CODE</div>
+    </div>
+    <div class="hcard" onclick="showView('view-snippets')">
+      <div class="hicon" style="background:var(--green-soft);">💻</div>
+      <div class="card-title">Code Snippets</div>
+      <div class="card-meta">LESS THEORY · MORE CODE</div>
+    </div>
+    <div class="hcard" onclick="showView('view-project')">
+      <div class="hicon" style="background:var(--purple-soft);">🚀</div>
+      <div class="card-title">Mini Project</div>
+      <div class="card-meta">1 HOMEWORK BRIEF</div>
+    </div>
+    <div class="hcard" onclick="showView('view-lab')">
+      <div class="hicon" style="background:#FDE7E5;">🧪</div>
+      <div class="card-title">Lab Work</div>
+      <div class="card-meta">4 CHALLENGE PROBLEMS</div>
+    </div>
+  </div>
+  <div class="footer-note">Covers Modules 1 through 5. Curriculum designed and taught by <strong>Siddhant Deepak Kumar Pradhan</strong>.</div>
+</div>
+
+<!-- ================= QUIZ ================= -->
+<div class="view" id="view-quiz">
+  <button class="backbtn" onclick="showView('view-hub')">← Back to hub</button>
+  <div class="view-hero"><h2>Daily Quiz</h2><p>10 questions covering everything from Module 1 to today's Module 5. Answer all of them, submit, and see exactly what you got wrong and why.</p></div>
+  <div class="wrap">
+
+    <div class="section-card" id="quiz-intro">
+      <h3 style="margin-top:0;">Before you start</h3>
+      <div class="quiz-form">
+        <label style="font-size:.85rem;font-weight:600;">Your name</label>
+        <input type="text" id="qName" placeholder="e.g. Aditi Sharma">
+        <label style="font-size:.85rem;font-weight:600;">Your email</label>
+        <input type="email" id="qEmail" placeholder="you@example.com">
+      </div>
+      <button class="btn" onclick="startQuiz()">Start the quiz</button>
+    </div>
+
+    <div class="section-card" id="quiz-body" style="display:none;">
+      <div id="quizQuestions"></div>
+      <button class="btn" onclick="submitQuiz()">Submit quiz</button>
+    </div>
+
+    <div class="section-card" id="quiz-results" style="display:none;">
+      <div class="score-hero">
+        <div class="score-num" id="scoreNum">0/10</div>
+        <p id="scoreMsg">Here's how you did.</p>
+      </div>
+      <div id="reviewList"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+        <button class="btn" id="downloadBtn">Download my result</button>
+        <a class="btn ghost" id="emailBtn" style="text-decoration:none;display:inline-flex;align-items:center;">Email result to instructor</a>
+      </div>
+      <div class="callout warn" style="margin-top:16px;">Instructor: replace <code>INSTRUCTOR_EMAIL</code> near the top of the script tag with your real email address before sharing this file.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= INTERVIEW PREP ================= -->
+<div class="view" id="view-interview">
+  <button class="backbtn" onclick="showView('view-hub')">← Back to hub</button>
+  <div class="view-hero"><h2>Interview Prep</h2><p>These are not the generic "what is a list" questions you'll find on any blog. Each one is framed the way an interviewer at a real data team would ask it, with the reasoning an enterprise engineer would expect back. Click a card to flip it.</p></div>
+  <div class="wrap">
+    <div class="tabbar" id="ivTabs"></div>
+    <div id="ivPanels"></div>
+  </div>
+</div>
+
+<!-- ================= ASSIGNMENT ================= -->
+<div class="view" id="view-assignment">
+  <button class="backbtn" onclick="showView('view-hub')">← Back to hub</button>
+  <div class="view-hero"><h2>Assignment</h2><p>8 problems, cumulative across everything covered so far. Solve each one in your own VS Code, save your files with your name in them, and send the folder to your instructor. No solutions here on purpose, this is the part you do yourself.</p></div>
+  <div class="wrap">
+    <div class="callout info">Submission: zip your solution files as <code>YourName_Assignment5.zip</code> and send to the instructor's email shared in class.</div>
+    <div id="assignmentList"></div>
+  </div>
+</div>
+
+<!-- ================= CODE SNIPPETS ================= -->
+<div class="view" id="view-snippets">
+  <button class="backbtn" onclick="showView('view-hub')">← Back to hub</button>
+  <div class="view-hero"><h2>Code Snippets</h2><p>You asked for less theory and more code. Here it is, topic by topic, every line commented so you know exactly what it does without a paragraph above it.</p></div>
+  <div class="wrap">
+    <div class="tabbar" id="snipTabs"></div>
+    <div id="snipPanels"></div>
+  </div>
+</div>
+
+<!-- ================= MINI PROJECT ================= -->
+<div class="view" id="view-project">
+  <button class="backbtn" onclick="showView('view-hub')">← Back to hub</button>
+  <div class="view-hero"><h2>Mini Project</h2><p>One problem statement, take it home, build it, send back your solution.</p></div>
+  <div class="wrap">
+    <div class="section-card">
+      <h3 style="margin-top:0;">Sales Register for a Local Kirana Store</h3>
+      <p><strong>Scenario:</strong> A neighbourhood kirana store owner wants a simple command-line tool to track daily sales instead of a paper notebook. You're building version one.</p>
+
+      <h4>What it must do</h4>
+      <ul style="color:var(--ink-soft);">
+        <li>Store the shop's product catalog in a dictionary: product name mapped to price.</li>
+        <li>Let the owner "sell" items by typing a product name and quantity, in a loop, until they type <code>done</code>.</li>
+        <li>Use a function <code>calculate_bill(cart, tax_percent=5)</code> that accepts everything sold and returns the subtotal, tax amount, and grand total.</li>
+        <li>Use a decorator <code>@log_transaction</code> that prints a timestamp every time a sale is finalised.</li>
+        <li>If the owner types a product name that isn't in the catalog, catch that with <code>try/except</code> and ask again instead of crashing.</li>
+        <li>At the end of the day, print a summary: total revenue, best-selling item, and number of transactions.</li>
+      </ul>
+
+      <h4>Constraints</h4>
+      <ul style="color:var(--ink-soft);">
+        <li>Minimum 5 separate functions, each with a clear single job.</li>
+        <li>At least one function must use <code>*args</code> or <code>**kwargs</code>.</li>
+        <li>No hard-coded prices inside your functions, everything should come from the catalog dictionary.</li>
+      </ul>
+
+      <h4>Bonus (optional, for extra credit)</h4>
+      <ul style="color:var(--ink-soft);">
+        <li>Save each day's transactions to a text file using what you'll learn in Module 7.</li>
+        <li>Add a low-stock warning if a product's remaining quantity drops below 5.</li>
+      </ul>
+
+      <div class="callout info">Deliverable: one <code>.py</code> file, well commented, plus a two-line note on one design decision you made and why. Submit through the same channel as your assignment.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LAB WORK ================= -->
+<div class="view" id="view-lab">
+  <button class="backbtn" onclick="showView('view-hub')">← Back to hub</button>
+  <div class="view-hero"><h2>Lab Work</h2><p>These four are tougher on purpose, closer to the kind of small puzzle a senior engineer hands a new hire to see how they think. Solutions are not published anywhere, work through them yourself.</p></div>
+  <div class="wrap">
+    <div class="callout locked">Answers to this section are held by your instructor and reviewed one-on-one. Do not search for these online, the scenarios are written specifically for this cohort.</div>
+    <div id="labList"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script>
+const INSTRUCTOR_EMAIL = "your.email@example.com"; // TODO: replace with your real email
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------------- QUIZ ---------------- */
+const QUIZ = [
+ {m:"Module 1",q:"You want to add the requests library to talk to an API. Which command actually installs it?",opts:["python install requests","pip install requests","import requests","get requests"],correct:1,why:"pip is Python's package manager, it's the only one of these that installs anything. import only works once a package already exists on your machine."},
+ {m:"Module 2",q:"What does type(10 // 3) return?",opts:["&lt;class 'float'&gt;","&lt;class 'int'&gt;","&lt;class 'str'&gt;","Raises an error"],correct:1,why:"// is floor division. Two integers divided with // always give back an integer in Python 3, never a float."},
+ {m:"Module 2",q:"Which line checks if two variables hold the same value, not the same object in memory?",opts:["a is b","a == b","a equals b","a.value(b)"],correct:1,why:"== compares values. is checks whether both names point to the exact same object, which is a completely different question and a common source of bugs."},
+ {m:"Module 3",q:"You need to store 50,000 unique IDs and repeatedly check membership. What structure gives the fastest lookups?",opts:["list","tuple","set","string"],correct:2,why:"Sets use hashing, so checking membership is close to instant regardless of size. A list has to scan item by item, which gets slow fast."},
+ {m:"Module 3",q:"What is the real difference between a list and a tuple?",opts:["Tuples can hold numbers, lists can't","Lists are ordered, tuples aren't","Lists can be edited after creation, tuples can't","There is no real difference"],correct:2,why:"Both are ordered and can hold mixed types. The difference that actually matters is mutability, a tuple can never be changed once it's built."},
+ {m:"Module 3",q:"What does my_dict.get('city', 'Unknown') return if 'city' is not a key in my_dict?",opts:["Raises a KeyError","Returns None","Returns the string 'Unknown'","Adds 'city' to the dictionary automatically"],correct:2,why:"get() lets you supply a fallback instead of crashing. Without that second argument it would quietly return None instead."},
+ {m:"Module 4",q:"A loop needs to skip just the current iteration and keep going. Which keyword do you use?",opts:["break","pass","continue","return"],correct:2,why:"continue jumps to the next iteration immediately. break would stop the whole loop, and pass literally does nothing, it's just a placeholder."},
+ {m:"Module 4",q:"Why is a bare except: (with no exception type) risky in real code?",opts:["It runs slower than other except blocks","It silently catches every kind of error, hiding real bugs","Python doesn't actually allow it","It only works inside while loops"],correct:1,why:"A bare except swallows everything, including mistakes you genuinely need to see, like a typo in your own code. Always name the specific exception you expect."},
+ {m:"Module 5",q:"Inside def report(*args):, what data type is args?",opts:["list","dict","tuple","set"],correct:2,why:"*args always collects extra positional values into a tuple. **kwargs is the one that builds a dictionary, out of keyword arguments."},
+ {m:"Module 5",q:"What's the real difference between print() and return inside a function?",opts:["They do the exact same thing","print() shows a value on screen, return hands the value back so it can be reused","return only works inside loops","print() is faster, so it should always be used"],correct:1,why:"A function that only prints can't be plugged into a bigger calculation, because nothing was actually handed back to whoever called it."}
+];
+let studentInfo = {};
+
+function startQuiz(){
+  const name = document.getElementById('qName').value.trim();
+  const email = document.getElementById('qEmail').value.trim();
+  if(!name || !email){ alert("Please add your name and email before starting."); return; }
+  studentInfo = {name, email};
+  document.getElementById('quiz-intro').style.display='none';
+  document.getElementById('quiz-body').style.display='block';
+  const box = document.getElementById('quizQuestions');
+  box.innerHTML = QUIZ.map((item,i)=>`
+    <div class="qblock">
+      <div class="qtitle">${i+1}. <span style="color:var(--muted);font-weight:500;font-size:.75rem;">${item.m}</span><br>${item.q}</div>
+      ${item.opts.map((opt,j)=>`
+        <label class="opt-label"><input type="radio" name="q${i}" value="${j}"> <span>${opt}</span></label>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function submitQuiz(){
+  let score = 0;
+  let reviewHTML = '';
+  let wrongForEmail = [];
+  QUIZ.forEach((item,i)=>{
+    const chosen = document.querySelector(`input[name="q${i}"]:checked`);
+    const chosenIdx = chosen ? parseInt(chosen.value) : -1;
+    const isCorrect = chosenIdx === item.correct;
+    if(isCorrect) score++;
+    else wrongForEmail.push(`Q${i+1}: ${item.q} | Your answer: ${chosenIdx>=0?item.opts[chosenIdx]:'Not answered'} | Correct: ${item.opts[item.correct]}`);
+    reviewHTML += `<div class="review-item ${isCorrect?'correct':'wrong'}">
+      <strong>${i+1}. ${item.q}</strong>
+      <div class="yours">Your answer: ${chosenIdx>=0?item.opts[chosenIdx]:'<em>Not answered</em>'} ${isCorrect?'✅':'❌'}</div>
+      ${!isCorrect?`<div class="yours">Correct answer: <strong>${item.opts[item.correct]}</strong></div>`:''}
+      <div class="why">${item.why}</div>
+    </div>`;
+  });
+  document.getElementById('quiz-body').style.display='none';
+  document.getElementById('quiz-results').style.display='block';
+  document.getElementById('scoreNum').textContent = score+"/10";
+  document.getElementById('scoreMsg').textContent = score>=8 ? `Strong work, ${studentInfo.name}. You've got this module down.` : score>=5 ? `Decent, ${studentInfo.name}. Go back over the ones marked wrong below.` : `Rough one, ${studentInfo.name}. Re-read Module 5 and retake this before the next class.`;
+  document.getElementById('reviewList').innerHTML = reviewHTML;
+
+  const resultText = `Quiz Result — ${studentInfo.name} (${studentInfo.email})\nScore: ${score}/10\n\n` + QUIZ.map((item,i)=>{
+    const chosen = document.querySelector(`input[name="q${i}"]:checked`);
+    const chosenIdx = chosen ? parseInt(chosen.value) : -1;
+    return `${i+1}. ${item.q}\nYour answer: ${chosenIdx>=0?item.opts[chosenIdx]:'Not answered'}\nCorrect answer: ${item.opts[item.correct]}\nWhy: ${item.why}\n`;
+  }).join('\n');
+
+  document.getElementById('downloadBtn').onclick = function(){
+    const blob = new Blob([resultText], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = studentInfo.name.replace(/\s+/g,'_')+'_Module5_Quiz_Result.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const emailBtn = document.getElementById('emailBtn');
+  emailBtn.href = `mailto:${INSTRUCTOR_EMAIL}?subject=${encodeURIComponent('Module 5 Quiz Result — '+studentInfo.name)}&body=${encodeURIComponent(resultText.slice(0,1500))}`;
+}
+
+/* ---------------- INTERVIEW PREP ---------------- */
+const INTERVIEW = {
+ "Module 1":[
+  {q:"Your team lead insists on pinning exact versions in requirements.txt before any deploy. Why does that one habit matter so much in a production pipeline?",a:"Because <strong>reproducibility</strong> is the whole game. If your laptop has pandas 2.1 and the server pulls pandas 2.3 on deploy day, a function that worked perfectly for you can silently behave differently or break outright. Pinning versions means the exact code that passed your tests is the exact code that runs in production."},
+  {q:"You're handed a machine with both Python 2.7 and 3.11 installed. How do you guarantee your pipeline always runs on 3.11?",a:"Create a virtual environment with <code>python3.11 -m venv env</code>, activate it, and install everything inside that isolated environment. Never rely on typing plain <code>python</code> and hoping it points to the right version, that assumption breaks the moment you move to a different machine or a CI server."},
+  {q:"Why do senior engineers insist on a clean folder structure like src/, tests/, data/, even for a 50 line script?",a:"Because scripts grow. A flat folder is fine at 50 lines, but at 500 lines with three teammates touching it, structure is what lets a new hire find the entry point in under a minute, and lets your CI/CD pipeline know exactly where tests live versus where the actual code lives."}
+ ],
+ "Module 2":[
+  {q:"A billing system computed 0.1 + 0.2 and got 0.30000000000000004. Why, and how would you actually fix this for money calculations?",a:"Floating point numbers can't represent every decimal exactly in binary, so tiny rounding errors creep in. For anything involving money, you don't use float at all in production, you either work in the smallest unit (store paise or cents as integers) or use Python's <code>decimal.Decimal</code> class, which was built specifically for exact decimal math."},
+  {q:"Explain to a junior why is and == gave different results when comparing two variables that both hold the string '12345', and why this bug has genuinely broken real code.",a:"== always compares values, and that's almost always what you want. is checks whether two names point to the exact same object in memory. Small strings and integers sometimes get 'interned' by Python and share memory by coincidence, so is can appear to work in a quick test, then quietly fail once the string is built differently (like read from a file), which is exactly the kind of bug that only shows up in production."},
+  {q:"An ETL job reads an employee ID column as '007' and casting it to int strips the leading zero, breaking joins with another system. How do real pipelines handle this?",a:"You keep identifier fields as strings for their entire life in the pipeline, never cast them to numbers just because they look numeric. When reading with pandas you'd explicitly set <code>dtype={'employee_id': str}</code>, and if you ever need to regenerate a zero-padded ID, you'd use string formatting like <code>str(n).zfill(3)</code> rather than trusting a numeric type to preserve it."}
+ ],
+ "Module 3":[
+  {q:"A pipeline checking membership against 2 million SKUs using a list took 40 minutes. What single structural change fixes this, and why?",a:"Switch the SKU collection from a list to a set. Checking <code>if sku in my_list</code> scans every item one by one in the worst case, which is painfully slow at that scale. A set uses hashing internally, so the same check is close to constant time no matter how large it grows."},
+  {q:"Why would you deliberately choose a tuple over a list to represent a single row inside your pipeline code?",a:"Immutability is a signal, not just a restriction. A tuple tells the next engineer reading your code 'this row should never be modified after it's created', which prevents an entire class of bugs where one function accidentally mutates data another function still relies on. Tuples are also hashable, so you can use one as a dictionary key, which a list never can."},
+  {q:"Why do modern Python dictionaries preserve insertion order, and where does a data engineer actually rely on that?",a:"Since Python 3.7 it became an official guarantee, not just an implementation detail. A real scenario: building a JSON response that gets consumed by another team's system expecting fields in a specific order for a legacy parser, or writing out a CSV where column order in the output file needs to match the order fields were added to a row dictionary."}
+ ],
+ "Module 4":[
+  {q:"Your ETL script processes 10,000 rows, and row 4,532 has a corrupted date field that crashes the entire job. How should this actually be handled in production?",a:"You never let one bad row take down the whole run. Wrap the per-row processing in its own try/except, log the corrupted row and the reason to a separate 'dead letter' file or table, and let the loop continue to the next row. At the end, you report how many rows succeeded and how many were quarantined, instead of losing 9,999 good rows because of one bad one."},
+  {q:"What's actually wrong with writing a bare except: in code that's about to go live?",a:"It catches absolutely everything, including errors you never intended to handle, like a genuine typo in a variable name, or even signals like KeyboardInterrupt. That hides real bugs behind a false sense of safety. Production code should always catch specific exception types, so a totally unexpected error still surfaces loudly instead of vanishing silently."},
+  {q:"Explain the difference between continue and pass to someone who thinks they're the same, using a data validation loop as the example.",a:"In a loop validating rows, <code>continue</code> means 'this row failed validation, skip it and move to the next one', it actively changes the loop's flow. <code>pass</code> means 'do nothing here', it's a placeholder you use when Python's syntax requires a body but you genuinely have no code to put yet, for example an empty except block while you're still deciding how to handle an error."}
+ ],
+ "Module 5":[
+  {q:"Two engineers disagree: one says every transformation should be its own small pure function, the other calls it overengineering for a one-off script. Where's the actual line?",a:"It comes down to lifespan and reuse. A script you'll run once and throw away doesn't need to be broken into five tiny functions. But the moment logic will be reused, tested, or touched by more than one person, small functions with one clear job each become far easier to debug and extend. The real skill is recognising which category you're in before you start writing."},
+  {q:"A teammate's function silently modified a list that was passed into it, and the caller lost their original data. What caused this, and how do you prevent it across a shared codebase?",a:"Lists (and dicts) are mutable, and Python passes them by reference, so a function editing its parameter in place is actually editing the caller's original object. The fix is either to explicitly copy the input at the top of the function before touching it, or to make the function return a brand new list instead of mutating the one it was given, and document which behaviour your function follows so nobody has to guess."},
+  {q:"Why is a @retry decorator one of the most common patterns you'll see in real data engineering codebases, and roughly how would you build one?",a:"Because real pipelines talk to things that fail intermittently, a flaky third-party API, a database connection that times out under load. A retry decorator wraps any function, catches the specific exception you expect, waits briefly, and calls the function again up to a set number of attempts before finally giving up and raising the error properly. It's one decorator that saves you from copy-pasting the same try/except-and-retry logic into every network call in your codebase."}
+ ]
+};
+function buildInterview(){
+  const tabs = document.getElementById('ivTabs');
+  const panels = document.getElementById('ivPanels');
+  const mods = Object.keys(INTERVIEW);
+  tabs.innerHTML = mods.map((m,i)=>`<button class="tab ${i===0?'active':''}" data-t="${i}">${m}</button>`).join('');
+  panels.innerHTML = mods.map((m,i)=>`
+    <div class="tabpanel ${i===0?'active':''}" data-p="${i}">
+      <div class="flip-grid">
+        ${INTERVIEW[m].map(item=>`
+          <div class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-inner">
+              <div class="flip-face flip-front"><div class="q">${item.q}</div><div class="hint">Tap to flip →</div></div>
+              <div class="flip-face flip-back">${item.a}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  tabs.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    tabs.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    panels.querySelectorAll('.tabpanel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    panels.querySelector(`[data-p="${t.dataset.t}"]`).classList.add('active');
+  }));
+}
+
+/* ---------------- ASSIGNMENT ---------------- */
+const ASSIGNMENTS = [
+ {tag:"Module 2-3",title:"Kirana Store Bill Splitter",body:"Store item names and prices in a dictionary. Ask which items were bought (as a list of names), then print a formatted bill with a grand total. Must use at least one dictionary method and one f-string."},
+ {tag:"Module 3",title:"Unique Pincode Finder",body:"Hardcode a list of 15-20 pincodes with some repeats. Print the sorted list of unique pincodes using a set, and print how many duplicates were removed."},
+ {tag:"Module 4",title:"Attendance Validator",body:"Loop through a list of attendance percentages. Using if/elif/else, label each as Eligible, Condonation or Detained based on rules you define. Wrap the whole thing in try/except so a non-numeric entry doesn't crash the program."},
+ {tag:"Module 4-5",title:"Grade Calculator as a Function",body:"Take your logic from the Attendance Validator and turn it into a proper function get_status(percentage) that returns the label instead of printing it. Call it inside a loop over multiple students and collect the results in a new list."},
+ {tag:"Module 5",title:"Flexible Invoice Generator",body:"Write generate_invoice(customer_name, *items, tax_percent=18) where items are (name, price) tuples. Calculate the subtotal, add tax using the default or a custom rate, and return a formatted invoice string."},
+ {tag:"Module 5",title:"Timing Decorator",body:"Write your own decorator called log_duration and apply it to any function from an earlier question. It should print how long that function took to run, in seconds."},
+ {tag:"Module 2 &amp; 4",title:"Password Strength Checker",body:"Write check_password(password) that returns Weak, Medium or Strong based on length, whether it has digits, and whether it has special characters. Use string methods and conditionals."},
+ {tag:"All modules",title:"Mini Contact Book",body:"Build a contact book using a dictionary of dictionaries (name mapped to phone and email). Write separate functions: add_contact(), search_contact(), delete_contact(). Wrap lookups in try/except so searching for someone who doesn't exist never crashes the program."}
+];
+function buildAssignments(){
+  document.getElementById('assignmentList').innerHTML = ASSIGNMENTS.map((a,i)=>`
+    <div class="acc-item">
+      <div class="acc-head" onclick="this.parentElement.classList.toggle('open')">
+        <span>${i+1}. ${a.title} <span class="tag">${a.tag}</span></span>
+        <span class="acc-plus">+</span>
+      </div>
+      <div class="acc-body"><p>${a.body}</p></div>
+    </div>
+  `).join('');
+}
+
+/* ---------------- CODE SNIPPETS ---------------- */
+const SNIPPETS = {
+  "Data Types & Strings":[
+`# type conversion, the kind you'll do on every raw CSV column
+raw = "  249.90 "
+price = float(raw.strip())          # -> 249.9
+print(type(price), price)
+
+count = "8"
+total = int(count) * price          # convert before doing math
+print(total)`,
+`# f-strings, formatting numbers the way a report actually needs
+amount = 15000.5
+print(f"{amount:,.2f}")             # 15,000.50
+print(f"{amount:>15,.2f}")          # right aligned in a 15 char slot
+print(f"{'ITEM':<10}{'PRICE':>10}") # simple column header`,
+`# string methods you'll use constantly while cleaning data
+name = "  RIYA singh  "
+print(name.strip())          # remove outer spaces
+print(name.strip().title())  # -> "Riya Singh"
+print(name.strip().lower().replace(" ", "_"))  # -> "riya_singh"`,
+`# membership and identity, know the difference
+a = "hello"
+b = "hello"
+print(a == b)   # True, same value
+print(a is b)   # usually True for short strings (interning), don't rely on it
+print("ell" in a)   # True, substring check`,
+`# type checking before you trust incoming data
+value = input("Enter a number: ")
+if value.isdigit():
+    print(int(value) * 2)
+else:
+    print("That wasn't a whole number.")`
+  ],
+  "Data Structures":[
+`# list slicing and comprehension, the two most-used list tricks
+nums = [4, 8, 15, 16, 23, 42]
+print(nums[1:4])              # [8, 15, 16]
+print(nums[-2:])              # last two items
+squares = [n*n for n in nums if n % 2 == 0]   # only even numbers, squared
+print(squares)`,
+`# tuple unpacking, used constantly when a function returns multiple values
+point = (12, 45)
+x, y = point
+print(x, y)
+
+first, *rest = [1, 2, 3, 4]   # first = 1, rest = [2, 3, 4]
+print(first, rest)`,
+`# set operations, useful for comparing two collections of data
+today = {"A101", "A102", "A103"}
+yesterday = {"A101", "A104"}
+print(today - yesterday)      # new today: {'A102', 'A103'}
+print(today & yesterday)      # in both: {'A101'}
+print(today | yesterday)      # combined, no duplicates`,
+`# dictionary comprehension, building a lookup table in one line
+students = ["Aman", "Riya", "Kabir"]
+marks = [78, 91, 65]
+score_map = {name: mark for name, mark in zip(students, marks)}
+print(score_map)              # {'Aman': 78, 'Riya': 91, 'Kabir': 65}`,
+`# nested structures, the shape most real data actually comes in
+orders = [
+    {"id": 1, "items": ["pen", "notebook"]},
+    {"id": 2, "items": ["eraser"]},
+]
+for order in orders:
+    print(order["id"], "->", ", ".join(order["items"]))`
+  ],
+  "Control Flow & Loops":[
+`# if / elif / else, a grading example you'll reuse constantly
+def grade(pct):
+    if pct >= 90: return "A"
+    elif pct >= 75: return "B"
+    elif pct >= 60: return "C"
+    else: return "F"
+
+for p in [95, 82, 58]:
+    print(p, "->", grade(p))`,
+`# for-else, rare but genuinely useful for search loops
+target = 42
+nums = [4, 8, 15, 16, 23]
+for n in nums:
+    if n == target:
+        print("Found it")
+        break
+else:
+    print("Not found in the list")   # only runs if break never happened`,
+`# try / except / finally, handling bad input without crashing
+def safe_divide(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return None
+    finally:
+        print("Division attempted.")
+
+print(safe_divide(10, 2))
+print(safe_divide(10, 0))`,
+`# while loop with a sentinel value, common in small CLI tools
+cart_total = 0
+while True:
+    entry = input("Add a price, or type 'done': ")
+    if entry == "done":
+        break
+    cart_total += float(entry)
+print("Total:", cart_total)`,
+`# looping with enumerate when you need both index and value
+fruits = ["mango", "banana", "guava"]
+for i, fruit in enumerate(fruits, start=1):
+    print(f"{i}. {fruit}")`
+  ],
+  "Functions & Decorators":[
+`# default + keyword arguments together
+def book_ticket(name, seat="Any", meal="Veg"):
+    return f"{name} | Seat: {seat} | Meal: {meal}"
+
+print(book_ticket("Aman"))
+print(book_ticket("Riya", meal="Non-Veg"))`,
+`# *args and **kwargs used in the same function
+def summarise(*scores, **meta):
+    print("Scores:", scores)
+    print("Meta:", meta)
+    return sum(scores) / len(scores)
+
+avg = summarise(78, 85, 90, subject="Python", term="Fall")
+print("Average:", avg)`,
+`# lambda + sorted, a combo you'll use often with real data
+records = [{"name": "Ravi", "sales": 200}, {"name": "Anu", "sales": 450}]
+top = sorted(records, key=lambda r: r["sales"], reverse=True)
+print(top[0]["name"])`,
+`# a genuinely useful decorator: catch and log errors without stopping the caller
+def safe_run(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(f"{func.__name__} failed: {e}")
+            return None
+    return wrapper
+
+@safe_run
+def divide(a, b):
+    return a / b
+
+print(divide(10, 2))
+print(divide(10, 0))`,
+`# closures, the idea decorators are actually built on
+def make_multiplier(factor):
+    def multiply(n):
+        return n * factor
+    return multiply
+
+double = make_multiplier(2)
+triple = make_multiplier(3)
+print(double(10), triple(10))`
+  ]
+};
+function buildSnippets(){
+  const tabs = document.getElementById('snipTabs');
+  const panels = document.getElementById('snipPanels');
+  const topics = Object.keys(SNIPPETS);
+  tabs.innerHTML = topics.map((t,i)=>`<button class="tab ${i===0?'active':''}" data-t="${i}">${t}</button>`).join('');
+  panels.innerHTML = topics.map((t,i)=>`
+    <div class="tabpanel ${i===0?'active':''}" data-p="${i}">
+      ${SNIPPETS[t].map((code,j)=>`
+        <div class="codecard">
+          <div class="filebar"><span>${t.toLowerCase().replace(/[^a-z]+/g,'_')}_${j+1}.py</span><button class="copybtn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-python">${code.replace(/</g,'&lt;')}</code></pre>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+  tabs.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    tabs.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    panels.querySelectorAll('.tabpanel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    panels.querySelector(`[data-p="${t.dataset.t}"]`).classList.add('active');
+  }));
+  if(window.hljs) hljs.highlightAll();
+}
+function copyCode(btn){
+  const code = btn.closest('.codecard').querySelector('code').innerText;
+  navigator.clipboard && navigator.clipboard.writeText(code);
+  const old = btn.textContent; btn.textContent = 'Copied!'; setTimeout(()=>btn.textContent=old,1200);
+}
+
+/* ---------------- LAB WORK ---------------- */
+const LABS = [
+ {title:"The Interval Merger",body:"You're given a list of tuples showing when a pipeline job ran, as (start_hour, end_hour) in 24-hour time, for example [(1,3),(2,5),(9,10)]. Write a function that merges any overlapping or touching ranges and returns the minimal list representing total busy hours. Expected output for that example: [(1,5),(9,10)]."},
+ {title:"The Leaky Bucket Counter",body:"Build a decorator that tracks how many times the function it wraps has been called across the entire program's run, not just once. Once the count crosses 5 calls, it should print a warning and stop letting the function run at all, simulating a simple API rate limiter."},
+ {title:"The Silent Corruption Finder",body:"You're given a list of dictionaries representing sales rows, where the 'amount' field is sometimes missing or holds a non-numeric string. Write a function that walks the list once and returns two separate lists: one of valid, cleaned rows, and one of the corrupted rows that were skipped, without crashing on either kind."},
+ {title:"The Nested Configuration Reader",body:"You're given a nested dictionary representing a pipeline config, with sections like database, retry and logging, each holding their own settings. Write get_setting(config, path, default=None) where path is a dotted string like 'database.host', and the function safely walks through the nested dictionary, returning default if any part of the path is missing instead of crashing."}
+];
+function buildLabs(){
+  document.getElementById('labList').innerHTML = LABS.map((l,i)=>`
+    <div class="acc-item">
+      <div class="acc-head" onclick="this.parentElement.classList.toggle('open')">
+        <span>${i+1}. ${l.title}</span><span class="acc-plus">+</span>
+      </div>
+      <div class="acc-body"><p>${l.body}</p></div>
+    </div>
+  `).join('');
+}
+
+buildInterview();
+buildAssignments();
+buildSnippets();
+buildLabs();
+</script>
+</body>
+</html>
